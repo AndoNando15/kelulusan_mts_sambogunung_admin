@@ -1,0 +1,16 @@
+{
+  "name": "mts-web-kelulusan-admin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.44.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}
