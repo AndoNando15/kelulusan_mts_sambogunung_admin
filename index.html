@@ -1,68 +1,312 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard – Kelulusan</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css" />
-  <style>
-    body {font-family: 'Inter', sans-serif; background: linear-gradient(135deg,#0f0c29,#302b63,#24243e); min-height:100vh; color:#fff; display:flex; flex-direction:column; align-items:center; padding:2rem;}
-    .card {background:rgba(255,255,255,0.08); backdrop-filter:blur(12px); border-radius:12px; padding:1.5rem; width:100%; max-width:1000px; box-shadow:0 8px 32px 0 rgba(31,38,135,0.37);}
-    h1{font-size:2rem;margin-bottom:1rem;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{padding:0.75rem;text-align:left;}
-    th{background:rgba(255,255,255,0.12);}
-    tr:nth-child(even){background:rgba(255,255,255,0.04);}
-    button{background:#6c63ff;border:none;border-radius:6px;color:#fff;padding:0.5rem 1rem;cursor:pointer;transition:background .2s;}
-    button:hover{background:#5a54d1;}
-    .modal{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);opacity:0;visibility:hidden;transition:opacity .3s;}
-    .modal.active{opacity:1;visibility:visible;}
-    .modal-content{background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:10px;padding:2rem;width:90%;max-width:500px;color:#fff;}
-    .form-group{margin-bottom:1rem;}
-    .form-group label{display:block;margin-bottom:0.3rem;}
-    .form-group input,.form-group select{width:100%;padding:0.5rem;border:none;border-radius:4px;}
-  </style>
-</head>
-<body>
-  <section class="card">
-    <h1>📊 Admin Dashboard – Kelulusan</h1>
-    <button id="btnAdd">Tambah Siswa</button>
-    <table>
-      <thead>
-        <tr>
-          <th>No Peserta</th>
-          <th>NISN</th>
-          <th>Nama</th>
-          <th>JK</th>
-          <th>Keterangan</th>
-          <th>Rata‑Rata</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tblBody"></tbody>
-    </table>
-  </section>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard – Kelulusan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#16a34a',
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
 
-  <div class="modal" id="studentModal">
-    <div class="modal-content">
-      <h2 id="modalTitle">Tambah Siswa</h2>
-      <form id="studentForm">
-        <input type="hidden" id="studentId" />
-        <div class="form-group"><label for="noPeserta">No Peserta</label><input type="text" id="noPeserta" required /></div>
-        <div class="form-group"><label for="nisn">NISN</label><input type="text" id="nisn" required /></div>
-        <div class="form-group"><label for="nama">Nama</label><input type="text" id="nama" required /></div>
-        <div class="form-group"><label for="jk">JK</label><select id="jk" required><option value="Laki-laki">Laki‑laki</option><option value="Perempuan">Perempuan</option></select></div>
-        <div class="form-group"><label for="keterangan">Keterangan</label><select id="keterangan" required><option value="LULUS">LULUS</option><option value="TIDAK LULUS">TIDAK LULUS</option></select></div>
-        <div class="form-group"><label for="rataRata">Rata‑Rata</label><input type="number" step="0.01" id="rataRata" required /></div>
-        <button type="submit">Simpan</button>
-        <button type="button" id="btnClose">Batal</button>
-      </form>
+      .modal {
+        opacity: 0;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s ease;
+        z-index: 50;
+      }
+
+      .modal.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal .modal-content {
+        transform: translateY(-12px);
+        transition:
+          transform 0.2s ease,
+          opacity 0.2s ease;
+        opacity: 0;
+      }
+
+      .modal.active .modal-content {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .table-wrapper {
+        border-radius: 1.75rem;
+      }
+
+      .table-wrapper table {
+        border-collapse: separate;
+        border-spacing: 0 0.65rem;
+      }
+
+      .table-wrapper thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .table-wrapper tbody tr {
+        transition: background-color 0.2s ease;
+      }
+
+      .table-wrapper tbody tr:nth-child(odd) {
+        background-color: rgba(236, 253, 245, 0.9);
+      }
+
+      .table-wrapper tbody tr:hover {
+        background-color: rgba(16, 185, 129, 0.12);
+      }
+
+      .table-wrapper td {
+        border-bottom: none;
+        padding: 1rem 1.15rem;
+        vertical-align: middle;
+      }
+
+      .pagination-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        padding: 0.75rem 0;
+        font-size: 0.95rem;
+        color: #14532d;
+      }
+
+      .pagination-button {
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background-color: #f0fdf4;
+        color: #065f46;
+        padding: 0.75rem 1.1rem;
+        min-width: 46px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        transition:
+          transform 0.2s ease,
+          background-color 0.2s ease,
+          color 0.2s ease,
+          border-color 0.2s ease;
+        cursor: pointer;
+      }
+
+      .pagination-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background-color: #d9f7e8;
+        border-color: #6ee7b7;
+      }
+
+      .pagination-button.active {
+        background: linear-gradient(135deg, #16a34a, #059669);
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 14px 28px rgba(16, 185, 74, 0.2);
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        background-color: #ecfdf5;
+        color: #8fbb94;
+        border-color: #d1fae5;
+      }
+
+      .pagination-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background-color: #d1fae5;
+      }
+
+      .pagination-button.active {
+        background: linear-gradient(135deg, #16a34a, #059669);
+        color: #ffffff;
+        box-shadow: 0 12px 24px rgba(16, 185, 74, 0.18);
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .action-buttons button {
+        border: none;
+        border-radius: 999px;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        transition:
+          transform 0.2s ease,
+          filter 0.2s ease;
+      }
+
+      .action-buttons button:hover {
+        transform: translateY(-1px);
+      }
+
+      .action-buttons .edit {
+        background-color: rgba(251, 255, 0, 0.12);
+        color: #064e3b;
+      }
+
+      .action-buttons .del {
+        background-color: rgba(248, 113, 113, 0.18);
+        color: #b91c1c;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-emerald-50 text-slate-900">
+    <div class="min-h-screen flex items-center justify-center p-4 md:p-6">
+      <section class="w-full max-w-6xl rounded-[2rem] bg-white shadow-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+              <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 shadow-sm">
+                <img src="logo.png" alt="Logo MTs YKUI Sambogunung" class="h-10 w-10 object-contain" />
+              </div>
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-600">Madrasah Tsanawiyah YKUI</p>
+                <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Admin Dashboard Kelulusan</h1>
+              </div>
+            </div>
+            <button
+              id="btnAdd"
+              class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:-translate-y-0.5 hover:brightness-110"
+            >
+              Tambah Siswa
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200 bg-emerald-50/50 px-4 py-4 sm:px-6 lg:px-8">
+          <div class="table-wrapper max-w-full overflow-x-auto bg-white shadow-sm ring-1 ring-slate-200">
+            <table class="min-w-full text-left text-sm sm:text-base">
+              <thead class="bg-emerald-100">
+                <tr>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">No Peserta</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">NISN</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">Nama</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">Jenis Kelamin</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">Keterangan</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">Rata‑Rata</th>
+                  <th class="px-4 py-4 text-left font-semibold uppercase tracking-[0.16em] text-emerald-700 sm:px-5">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tblBody" class="bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+          <div id="pagination" class="pagination-bar"></div>
+        </div>
+      </section>
     </div>
-  </div>
 
-  <script type="module" src="admin.js"></script>
-</body>
+    <div class="modal fixed inset-0 flex items-center justify-center bg-slate-900/55 p-4 transition-opacity duration-200" id="studentModal">
+      <div class="modal-content w-full max-w-xl rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-slate-200 sm:p-8">
+        <h2 id="modalTitle" class="text-2xl font-semibold text-slate-900">Tambah Siswa</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Isi semua data siswa dengan lengkap, lalu tekan Simpan.</p>
+        <form id="studentForm" class="mt-6 space-y-4">
+          <input type="hidden" id="studentId" />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-slate-700">No Peserta</span>
+              <input type="text" id="noPeserta" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20" />
+            </label>
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-slate-700">NISN</span>
+              <input type="text" id="nisn" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20" />
+            </label>
+          </div>
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-slate-700">Nama</span>
+            <input type="text" id="nama" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20" />
+          </label>
+          <div class="grid gap-4 sm:grid-cols-3">
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-slate-700">Jenis Kelamin</span>
+              <select id="jk" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20">
+                <option value="Laki-laki">Laki‑laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-slate-700">Keterangan</span>
+              <select id="keterangan" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20">
+                <option value="LULUS">LULUS</option>
+                <option value="TIDAK LULUS">TIDAK LULUS</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-slate-700">Rata‑Rata</span>
+              <input
+                type="number"
+                step="0.01"
+                id="rataRata"
+                required
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-emerald-500/20"
+              />
+            </label>
+          </div>
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button type="button" id="btnClose" class="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 sm:w-auto">
+              Batal
+            </button>
+            <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 sm:w-auto">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal fixed inset-0 flex items-center justify-center bg-slate-900/55 p-4 transition-opacity duration-200" id="confirmModal">
+      <div class="modal-content w-full max-w-md rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-slate-200 sm:p-8">
+        <h2 class="text-2xl font-semibold text-slate-900">Konfirmasi Hapus</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-600">Apakah Anda yakin ingin menghapus data siswa ini? Tindakan ini tidak dapat dikembalikan.</p>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            id="confirmCancel"
+            class="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 sm:w-auto"
+          >
+            Batal
+          </button>
+          <button type="button" id="confirmDelete" class="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 sm:w-auto">
+            Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+  </body>
 </html>
