@@ -9,7 +9,8 @@
     "vercel-build": "node ./node_modules/vite/bin/vite.js build"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.44.0"
+    "@supabase/supabase-js": "^2.44.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "vite": "^5.2.0"
